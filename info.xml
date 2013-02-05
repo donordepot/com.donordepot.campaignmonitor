@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
 <extension key="com.donordepot.campaignmonitor" type="module">
   <file>campaignmonitor</file>
-  <name>FIXME</name>
-  <description>FIXME</description>
-  <license>FIXME</license>
+  <name>Campaign Monitor</name>
+  <description>Sync Contact Groups with Campaign Monitor Lists</description>
+  <license>No Liscense</license>
   <maintainer>
-    <author>FIXME</author>
-    <email>FIXME@example.com</email>
+    <author>Donor Depot</author>
+    <email>donordepot@donordepot.com</email>
   </maintainer>
   <releaseDate>2013-02-04</releaseDate>
-  <version>1.0</version>
-  <develStage>alpha</develStage>
+  <version>1.x-dev</version>
+  <develStage>dev</develStage>
   <compatibility>
     <ver>4.2</ver>
   </compatibility>
-  <comments>This is a new, undeveloped module</comments>
+  <comments></comments>
   <civix>
     <namespace>CRM/Campaignmonitor</namespace>
   </civix>
