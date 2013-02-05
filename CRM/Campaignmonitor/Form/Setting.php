@@ -45,4 +45,25 @@ class CRM_Campaignmonitor_Form_Setting extends CRM_Core_Form {
     
   }
   
+  /**
+   * Function to process the form
+   *
+   * @access public
+   *
+   * @return None
+   */
+  public function postProcess() {
+    // store the submitted values in an array
+    $params = $this->controller->exportValues($this->_name);
+
+    // save checksum timeout
+    if (CRM_Utils_Array::value('api_key', $params)) {
+      CRM_Core_BAO_Setting::setItem($params['api_key'],
+        'Campaign Monitor Preferences',
+        'api_key'
+      );
+    }
+    
+  }
+  
 }
