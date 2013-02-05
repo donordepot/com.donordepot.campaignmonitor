@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/campaignmonitor/config</path>
+    <page_callback>CRM_Campaignmonitor_Form_Config</page_callback>
+    <title>Campaignmonitor</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
