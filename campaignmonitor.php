@@ -3,6 +3,54 @@
 require_once 'campaignmonitor.civix.php';
 
 /**
+ * Implementation of hook_civicrm_post
+ */
+function campaignmonitor_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  
+  // List all of the Object Names in use.
+  $names = array(
+    'Individual',
+    'Household',
+    'Organization',
+    'GroupContact',
+  );
+  
+  // If the objectName passed is not
+  // being used, return.
+  if (!in_array($objectName, $names)) {
+    return;
+  }
+  
+  // List all of the Operations in use.
+  $ops = array(
+    'create',
+    'edit',
+    'delete',
+  );
+  
+  // If the operation passed is not being used, return.
+  if (!in_array($op, $ops)) {
+    return;
+  }
+  
+  if ($objectName == 'GroupContact') {
+    // @TODO: Query for the civicrm_subscription_history since the "last_id" (stored as a variable), and execute the 'status' of each one since the last time something was saved. This will occur on all of the create/edit/delete actions.
+  }
+  else {
+     // @TODO: If the record has been "deleted" (thrown in the trash), it should be unsubscribed from every list that it's a part of. If it's been deleted permenently then it should be deleted from each list. If it's been restored from the trash, user should be re-subscribed to each list. If the user's contact information has changed, then the change should be refelected on each list.
+    if ($op == 'edit') {
+      
+    }
+    elseif ($op == 'delete') {
+      
+    }
+  }
+  
+  
+    
+}
+
+/**
  * Implementation of hook_civicrm_config
  */
 function campaignmonitor_civicrm_config(&$config) {
