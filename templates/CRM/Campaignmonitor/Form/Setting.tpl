@@ -16,7 +16,23 @@
             {$form.api_key.html}
           </div>
           <div class="description">
-            {ts}<a href="http://www.campaignmonitor.com/api/getting-started#apikey">API Key</a> from Campaign Monitor{/ts}
+            {ts}<a href="http://www.campaignmonitor.com/api/getting-started/#apikey">API Key</a> from Campaign Monitor{/ts}
+          </div>
+        </div>
+      </div>
+    </fieldset>
+    <fieldset class="form-wrapper">
+      <legend><span>{ts}Client ID{/ts}</span></legend>
+      <div class="fieldset-wrapper">
+        <div class="form-item form-type-textfield client_id clearfix">
+          <div class="label">
+            {$form.client_id.label}
+          </div>
+          <div class="input">
+            {$form.client_id.html}
+          </div>
+          <div class="description">
+            {ts}<a href="http://www.campaignmonitor.com/api/getting-started/#clientid">Client ID</a> from Campaign Monitor{/ts}
           </div>
         </div>
       </div>
