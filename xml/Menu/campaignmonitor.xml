@@ -7,6 +7,12 @@
     <access_arguments>access CiviCRM</access_arguments>
   </item>
   <item>
+    <path>civicrm/admin/campaignmonitor/sync</path>
+    <page_callback>CRM_Campaignmonitor_Form_Sync</page_callback>
+    <title>Campaign Monitor</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
     <path>civicrm/campaignmonitor/webhook</path>
     <page_callback>CRM_Campaignmonitor_Page_WebHook</page_callback>
     <title>WebHook</title>
