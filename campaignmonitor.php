@@ -2,6 +2,7 @@
 
 require_once 'campaignmonitor.civix.php';
 require_once 'packages/createsend-php/csrest_subscribers.php';
+require_once 'packages/createsend-php/csrest_lists.php';
 
 /**
  * Implementation of hook_civicrm_pre
@@ -43,6 +44,10 @@ function campaignmonitor_civicrm_post($op, $objectName, $objectId, &$objectRef) 
   
   if ($objectName == 'GroupContact' && in_array($op, $ops)) {
     campaignmonitor_update_subscription_history();
+  }
+  
+  if ($objectName == 'Group' && $op == 'delete') {
+    campaignmonitor_delete_group($objectRef);
   }
   
 }
@@ -336,6 +341,41 @@ function campaignmonitor_update_contact($op, $contact_id, $params) {
     }
     
   }
+  
+}
+
+/**
+ * When a CiviCRM Group is deleted,
+ * remove it's list and references.
+ */
+function campaignmonitor_delete_group($group) {
+  
+  // Get the API Key
+  $api_key = campaignmonitor_variable_get('api_key');
+  
+  // Get the Groups
+  $groups = campaignmonitor_variable_get('groups', array());
+  
+  // Get the Groups
+  $group_map = campaignmonitor_variable_get('group_map', array());
+  
+  // Before attempting to remove the List
+  // Make sure all data is ready
+  if (!empty($api_key) && !empty($group_map[$group->id])) {
+    
+    // Delete the List.
+    $lists = new CS_REST_Lists($group_map[$group->id], $api_key);
+    $result = $lists->delete();
+    
+  }
+  
+  unset($groups[$group->id]);
+  
+  campaignmonitor_variable_set('groups', $groups);
+  
+  unset($group_map[$group->id]);
+  
+  campaignmonitor_variable_set('group_map', $group_map);
   
 }
 
