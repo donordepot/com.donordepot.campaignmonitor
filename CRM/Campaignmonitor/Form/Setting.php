@@ -200,7 +200,27 @@ class CRM_Campaignmonitor_Form_Setting extends CRM_Core_Form {
       $result = $cs_lists->create($params['client_id'], $list_details);
       $list_id = !empty($result->response) ? $result->response : '';
       
+      // Save the List ID in the Map
       $group_map[$group->id] = $list_id;
+      
+      // If there is a list id, create the webhook
+      if (!empty($list_id)) {
+        
+        // Build the webhook.
+        $webhook = array(
+          'Events' => array(
+            CS_REST_LIST_WEBHOOK_SUBSCRIBE,
+            CS_REST_LIST_WEBHOOK_DEACTIVATE,
+            CS_REST_LIST_WEBHOOK_UPDATE,
+          ),
+          'Url' => CRM_Utils_System::url('civicrm/campaignmonitor/webhook', NULL, TRUE),
+          'PayloadFormat' => CS_REST_WEBHOOK_FORMAT_JSON,
+        );
+        
+        // Create the webhook.
+        $cs_lists->create_webhook($webhook);
+        
+      }
                       
     }
     
