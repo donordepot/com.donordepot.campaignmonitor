@@ -4,9 +4,9 @@ require_once 'campaignmonitor.civix.php';
 require_once 'packages/createsend-php/csrest_subscribers.php';
 
 /**
- * Implementation of hook_civicrm_post
+ * Implementation of hook_civicrm_pre
  */
-function campaignmonitor_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+function campaignmonitor_civicrm_pre($op, $objectName, $id, &$params) {
   
   // List all of the Object Names in use.
   $names = array(
@@ -18,6 +18,25 @@ function campaignmonitor_civicrm_post($op, $objectName, $objectId, &$objectRef) 
   // List all of the Operations in use.
   $ops = array(
     'create',
+    'restore',
+    'edit',
+    'delete',
+  );
+  
+  if (in_array($op, $ops) && in_array($objectName, $names)) {
+     campaignmonitor_update_contact($op, $id, $params);
+  }
+  
+}
+
+/**
+ * Implementation of hook_civicrm_post
+ */
+function campaignmonitor_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  
+  // List all of the Operations in use.
+  $ops = array(
+    'create',
     'edit',
     'delete',
   );
@@ -25,10 +44,30 @@ function campaignmonitor_civicrm_post($op, $objectName, $objectId, &$objectRef) 
   if ($objectName == 'GroupContact' && in_array($op, $ops)) {
     campaignmonitor_update_subscription_history();
   }
-  elseif (in_array($op, $ops) && in_array($objectName, $names)) {
-     campaignmonitor_update_contact($op, $objectRef);
-  }
   
+}
+
+/**
+ * Set Campaign Monitor Variable
+ */
+function campaignmonitor_variable_set($variable, $value = NULL) {
+  return CRM_Core_BAO_Setting::setItem(
+    $value,
+    'Campaign Monitor Preferences',
+    $variable
+  );
+}
+
+/**
+ * Get Campaign Monitor Variable
+ */
+function campaignmonitor_variable_get($variable, $default = NULL) {
+  return CRM_Core_BAO_Setting::getItem(
+    'Campaign Monitor Preferences',
+    $variable,
+    NULL,
+    $default
+  );
 }
 
 /**
@@ -38,12 +77,7 @@ function campaignmonitor_civicrm_post($op, $objectName, $objectId, &$objectRef) 
 function campaignmonitor_update_subscription_history() {
   
   // Get the API Key
-  $api_key = CRM_Core_BAO_Setting::getItem(
-    'Campaign Monitor Preferences',
-    'api_key',
-    NULL,
-    ''
-  );
+  $api_key = campaignmonitor_variable_get('api_key');
   
   // If the API Key or Client ID are empty
   // return now, for there is nothing else we can do.
@@ -52,28 +86,13 @@ function campaignmonitor_update_subscription_history() {
   }
   
   // Get the Groups
-  $groups = CRM_Core_BAO_Setting::getItem(
-    'Campaign Monitor Preferences',
-    'groups',
-    NULL,
-    array()
-  );
+  $groups = campaignmonitor_variable_get('groups', array());
   
   // Get the Groups
-  $group_map = CRM_Core_BAO_Setting::getItem(
-    'Campaign Monitor Preferences',
-    'group_map',
-    NULL,
-    array()
-  );
+  $group_map = campaignmonitor_variable_get('group_map', array());
   
   // Get the Last ID retrieved.
-  $last_id = CRM_Core_BAO_Setting::getItem(
-    'Campaign Monitor Preferences',
-    'subscription_history',
-    NULL,
-    0
-  );
+  $last_id = campaignmonitor_variable_get('subscription_history', 0);
   
   // Set this to the new last id.
   $new_last_id = $last_id;
@@ -82,6 +101,9 @@ function campaignmonitor_update_subscription_history() {
   $history = new CRM_Contact_BAO_SubscriptionHistory();
   $history->whereAdd('id > '.$last_id);
   $history->find();
+  
+  // Setup the CS Subscribers.
+  $subscribers = new CS_REST_Subscribers(NULL, $api_key);
   
   // Loop through the history that is found.
   while ($history->fetch()) {
@@ -123,7 +145,7 @@ function campaignmonitor_update_subscription_history() {
     }
     
     // Setup the CS Subscribers.
-    $subscribers = new CS_REST_Subscribers($list_id, $api_key);
+    $subscribers->set_list_id($list_id);
     
     // If the Contact is being added, add them to the list.
     if ($history->status == 'Added') {
@@ -147,19 +169,174 @@ function campaignmonitor_update_subscription_history() {
   }
   
   // Update the Last ID, so we know where to start from.
-  CRM_Core_BAO_Setting::setItem(
-    $new_last_id,
-    'Campaign Monitor Preferences',
-    'subscription_history'
-  );
+  campaignmonitor_variable_set('subscription_history', $new_last_id);
   
 }
 
 /**
  * Update Campaign Monitor to Match the new Contact.
  */
-function campaignmonitor_update_contact($op, $contact) {
-  // @TODO: If the record has been "deleted" (thrown in the trash), it should be unsubscribed from every list that it's a part of. If it's been deleted permenently then it should be deleted from each list. If it's been restored from the trash, user should be re-subscribed to each list. If the user's contact information has changed, then the change should be refelected on each list.
+function campaignmonitor_update_contact($op, $contact_id, $params) {
+
+  // Get the API Key
+  $api_key = campaignmonitor_variable_get('api_key');
+  
+  // If the API Key or Client ID are empty
+  // return now, for there is nothing else we can do.
+  if (empty($api_key)) {
+    return;
+  }
+  
+  // Get the Groups
+  $groups = campaignmonitor_variable_get('groups', array());
+  
+  // Get the Groups
+  $group_map = campaignmonitor_variable_get('group_map', array());
+  
+  // Get the Contact
+  $contact = new CRM_Contact_BAO_Contact();
+  $contact->get('id', $contact_id);
+  
+  // Setup the CS Subscribers.
+  $subscribers = new CS_REST_Subscribers(NULL, $api_key);
+  
+  // Get the Contact's Current Primary Email.
+  $email = new CRM_Core_BAO_Email();
+  $email->whereAdd('contact_id = '.$contact->id);
+  $email->whereAdd('is_primary = 1');
+  $email->find(TRUE);
+  
+  if ($op == 'create' || $op == 'edit') {
+    
+    $primary_email = '';
+    
+    // Find the Primary Eamil from the Paramaters.
+    foreach ($params['email'] as $email_params) {
+      if (!empty($email_params['is_primary'])) {
+        $primary_email = $email_params['email'];
+      }
+    }
+    
+    // See if the Current Primary Email is different from the submitted value.
+    if ($email->email != $primary_email) {
+      
+      // Update the List to reflect the new primary email.
+      foreach ($params['group'] as $group_id => $in_group) {
+        
+        // Make sure that we should be working with this user.
+        if (!empty($groups[$group_id]) && !empty($group_map[$group_id])) {
+          
+          // Set the List ID
+          $subscribers->set_list_id($group_map[$group_id]);
+          
+          // Create the Parameters to be Updated.
+          $subscriber = array (
+            'EmailAddress' => $primary_email,
+          );
+          
+          // If Both emails are empty, the email has changed.
+          if (!empty($email->email) && !empty($primary_email)) {
+            
+            // Create the Parameters to be Updated.
+            $subscriber = array (
+              'EmailAddress' => $primary_email,
+            );
+          
+            // Update the Subscriber.
+            $result = $subscribers->update($email->email, $subscriber);
+          }
+          // if the Existing email is empty, subscirbe the user (only if they are in the group)
+          elseif ($in_group && empty($email->email) && !empty($primary_email)) {
+            
+            // Create the Paramaters to be Subscribed
+            $subscriber = array (
+              'EmailAddress' => $primary_email,
+              'Name' => $contact->display_name,
+              'Resubscribe' => !empty($params['privacy']['do_not_email']) ? FALSE : TRUE,
+              'RestartSubscriptionBasedAutoResponders' => FALSE,
+            );
+            
+            // Add the Subscriber.
+            $result = $subscribers->add($subscriber);
+            
+          }
+          // If the exting email is not empty, but the primary email is, then they should be deleted.
+          elseif (!empty($email->email) && empty($primary_email)) {
+            
+            // Delete the Subscriber.
+            $result = $subscribers->delete($email->email);
+            
+          }
+          
+          
+        }
+        
+      }
+    
+    }
+  
+  }
+  // If the User is being deleted
+  elseif ($op == 'delete' && !empty($email->email)) {
+    
+    // Loop through all groups that should be synced.
+    foreach ($groups as $group_id => $sync) {
+      
+      // If a map exists for said group
+      if ($sync && !empty($group_map[$group_id])) {
+        
+          // Set the List ID
+          $subscribers->set_list_id($group_map[$group_id]);
+          
+          // If the Contact hasn't been removed yet
+          if (!empty($contact->is_deleted)) {
+            // Delete the Subscriber
+            $result = $subscribers->delete($email->email);
+          }
+          else {
+            // Remove the Subscriber
+            $result = $subscribers->unsubscribe($email->email);
+          }
+          
+        }        
+    }
+      
+  }
+  // If the Contact is being created or restored
+  elseif (!empty($email->email) && $op == 'restore') {
+  
+    // Get all the Groups a Contact was in.
+    $group_contact = new CRM_Contact_BAO_GroupContact();
+    $group_contact->whereAdd('contact_id = '.$contact->id);
+    $group_contact->whereAdd("status = 'Added'");
+    $group_contact->find();
+    
+    // Loop through Each Group.
+    while ($group_contact->fetch()) {
+      
+      // Set the Group ID.
+      $group_id = $group_contact->group_id;
+      
+      // Make sure this group should be synced and it is mapped.
+      if (!empty($groups[$group_id]) && !empty($group_map[$group_id])) {
+      
+        // Set the List ID.
+        $subscribers->set_list_id($group_map[$group_id]);
+        
+        $subscriber = array (
+          'EmailAddress' => $email->email,
+          'Name' => $contact->display_name,
+          'Resubscribe' => $contact->do_not_email ? FALSE : TRUE,
+          'RestartSubscriptionBasedAutoResponders' => FALSE,
+        );
+        $result = $subscribers->add($subscriber);
+        
+      }
+      
+    }
+    
+  }
+  
 }
 
 /**
