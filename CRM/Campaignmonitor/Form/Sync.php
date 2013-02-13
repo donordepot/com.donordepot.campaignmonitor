@@ -6,6 +6,12 @@ require_once 'packages/createsend-php/csrest_clients.php';
 require_once 'packages/createsend-php/csrest_lists.php';
 
 class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
+
+  const QUEUE_NAME = 'cm-sync';
+  
+  const END_URL = 'civicrm/admin/campaignmonitor/sync';
+  
+  const END_PARAMS = 'run=true';
   
   /**
    * Function to return the Form Name.
@@ -53,6 +59,41 @@ class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
     // Store the submitted values in an array.
     $params = $this->controller->exportValues($this->_name);
     
+    $queue = CRM_Queue_Service::singleton()->create(array(
+      'name' => self::QUEUE_NAME,
+      'type' => 'Sql',
+      'reset' => TRUE,
+    ));
+    
+    $task = new CRM_Queue_Task(
+      array (
+        'CRM_Upgrade_Form',
+        'doIncrementalUpgradeStep',
+      ),
+      array(),
+      'Campaign Monitor Sync'
+    );
+    $queue->createItem($task);
+    
+    $runner = new CRM_Queue_Runner(array(
+      'title' => ts('Campaign Monitor Sync'),
+      'queue' => $queue,
+      'errorMode'=> CRM_Queue_Runner::ERROR_ABORT,
+      'onEndUrl' => CRM_Utils_System::url(self::END_URL, self::END_PARAMS),
+    ));
+    $runner->runAllViaWeb();
+  }
+  
+  /**
+   * Function to process the form
+   *
+   * @access public
+   *
+   * @return None
+   */
+  public function runSync(CRM_Queue_TaskContext $ctx) {
+    print 'hello!';
+    exit;
   }
   
 }
