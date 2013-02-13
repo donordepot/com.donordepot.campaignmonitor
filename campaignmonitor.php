@@ -413,6 +413,31 @@ function campaignmonitor_civicrm_uninstall() {
  * Implementation of hook_civicrm_enable
  */
 function campaignmonitor_civicrm_enable() {
+  
+  $navigation = new CRM_Core_BAO_Navigation();
+  
+  $params = array(
+    'name' => 'Campaign Monitor',
+    'label' => 'Campaign Monitor',
+    'url' => 'civicrm/admin/setting/campaignmonitor',
+    'permission' => 'access CiviCRM',
+    'parent_id' => 137,
+    'is_active' => TRUE,
+  );
+  
+  $navigation->add($params);
+  
+  $params = array(
+    'name' => 'Campaign Monitor Sync',
+    'label' => 'Campaign Monitor Sync',
+    'url' => 'civicrm/admin/campaignmonitor/sync',
+    'permission' => 'access CiviCRM',
+    'parent_id' => 15,
+    'is_active' => TRUE,
+  );
+  
+  $navigation->add($params);
+  
   return _campaignmonitor_civix_civicrm_enable();
 }
 
@@ -420,6 +445,23 @@ function campaignmonitor_civicrm_enable() {
  * Implementation of hook_civicrm_disable
  */
 function campaignmonitor_civicrm_disable() {
+  
+  $navigation = new CRM_Core_BAO_Navigation();
+  $navigation->url = 'civicrm/admin/setting/campaignmonitor';
+  $navigation->find();
+  
+  while ($navigation->fetch()) {
+    $navigation->processDelete($navigation->id);
+  }
+  
+  $navigation = new CRM_Core_BAO_Navigation();
+  $navigation->url = 'civicrm/admin/campaignmonitor/sync';
+  $navigation->find();
+  
+  while ($navigation->fetch()) {
+    $navigation->processDelete($navigation->id);
+  }
+  
   return _campaignmonitor_civix_civicrm_disable();
 }
 
