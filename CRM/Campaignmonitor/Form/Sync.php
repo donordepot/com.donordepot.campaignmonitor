@@ -115,7 +115,7 @@ class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
         array(
           $start,
         ),
-        'Campaign Monitor Sync '.($i+1).' of '.$rounds
+        'Campaign Monitor Sync - Contacts '.($start+10).' of '.$count
       );
       
       // Add the Task to the Queu
