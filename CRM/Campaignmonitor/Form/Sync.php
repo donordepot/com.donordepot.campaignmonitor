@@ -92,8 +92,8 @@ class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
     if (!empty($group_ids)) {
 
       $group_contact = new CRM_Contact_BAO_GroupContact();
-      $group_contact->addWhere('group_id IN ('.implode(',', $group_ids).')');
-      $group_contact->addWhere("status = 'Added' OR status = 'Removed'");
+      $group_contact->whereAdd('group_id IN ('.implode(',', $group_ids).')');
+      $group_contact->whereAdd("status = 'Added' OR status = 'Removed'");
       $group_contact->orderBy('id ASC');
       $count = $group_contact->count();
 
@@ -174,8 +174,8 @@ class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
 
         // Find the GroupContacts matching this group_id
         $group_contact = new CRM_Contact_BAO_GroupContact();
-        $group_contact->addWhere('group_id = '.$group_id);
-        $group_contact->addWhere("status = 'Added' OR status = 'Removed'");
+        $group_contact->whereAdd('group_id = '.$group_id);
+        $group_contact->whereAdd("status = 'Added' OR status = 'Removed'");
         $group_contact->orderBy('id ASC');
         $group_contact->limit($start, 10);
         $group_contact->find();
