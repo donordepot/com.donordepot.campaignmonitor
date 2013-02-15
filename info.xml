@@ -3,7 +3,7 @@
   <file>campaignmonitor</file>
   <name>Campaign Monitor</name>
   <description>Sync Contact Groups with Campaign Monitor Lists</description>
-  <license>No Liscense</license>
+  <license>GNU AGPL 3</license>
   <maintainer>
     <author>Donor Depot</author>
     <email>info@donordepot.com</email>
