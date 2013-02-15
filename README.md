@@ -36,3 +36,6 @@ Usage
 * When deselecting a list from the Campaign Monitor Settings, the map will be removed, but the list will not be touched.
 * When a Group is deleted in CiviCRM, the matching Campaign Monitor List will be removed.
 
+License
+-------
+This software is licensed under the GNU Affero General Public License 3 (GNU AGPL 3)
