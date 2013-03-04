@@ -25,7 +25,7 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
     // And deserialise the data
     $data = $serialiser->deserialise($raw_post);
     
-    if (!empty($data->ID)) {
+    if (!empty($data->ListID)) {
     
       $group_id = array_search($data->ListID, $group_map);
       
