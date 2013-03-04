@@ -16,5 +16,6 @@
     <path>civicrm/campaignmonitor/webhook</path>
     <page_callback>CRM_Campaignmonitor_Page_WebHook</page_callback>
     <title>WebHook</title>
+    <access_arguments>access campaignmonitor webhook</access_arguments>
   </item>
 </menu>

@@ -1,7 +1,5 @@
 <?php
 
-require_once 'campaignmonitor.php';
-
 class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
 
   const QUEUE_NAME = 'cm-sync';

@@ -1,6 +1,7 @@
 <?php
 
-require_once 'campaignmonitor.php';
+require_once 'vendor/campaignmonitor/createsend-php/class/serialisation.php';
+require_once 'vendor/campaignmonitor/createsend-php/class/log.php';
 
 class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
 

@@ -1,7 +1,5 @@
 <?php
 
-require_once 'campaignmonitor.php';
-
 class CRM_Campaignmonitor_Form_Setting extends CRM_Core_Form {
   
   /**
