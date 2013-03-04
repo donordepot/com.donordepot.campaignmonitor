@@ -204,6 +204,9 @@ class CRM_Campaignmonitor_Form_Setting extends CRM_Core_Form {
       
       // If there is a list id, create the webhook
       if (!empty($list_id)) {
+      
+        // Reconnect to Campaign Monitor
+        $cs_lists = new CS_REST_Lists($list_id, $params['api_key']);
         
         // Build the webhook.
         $webhook = array(
