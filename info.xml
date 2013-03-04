@@ -3,6 +3,12 @@
   <file>campaignmonitor</file>
   <name>Campaign Monitor</name>
   <description>Sync Contact Groups with Campaign Monitor Lists</description>
+  <urls>
+    <url desc="Main Extension Page">http://donordepot.com</url>
+    <url desc="Documentation">https://github.com/donordepot/com.donordepot.campaignmonitor</url>
+    <url desc="Support">https://github.com/donordepot/com.donordepot.campaignmonitor/issues</url>
+    <url desc="Licensing">http://civicrm.org/licensing</url>
+  </urls>
   <license>GNU AGPL 3</license>
   <maintainer>
     <author>Donor Depot</author>
