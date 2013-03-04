@@ -2,9 +2,6 @@
 
 require_once 'campaignmonitor.php';
 
-require_once 'packages/createsend-php/csrest_clients.php';
-require_once 'packages/createsend-php/csrest_lists.php';
-
 class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
 
   const QUEUE_NAME = 'cm-sync';

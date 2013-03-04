@@ -1,8 +1,7 @@
 <?php
 
 require_once 'campaignmonitor.civix.php';
-require_once 'packages/createsend-php/csrest_subscribers.php';
-require_once 'packages/createsend-php/csrest_lists.php';
+require_once 'vendor/autoload.php';
 
 /**
  * Implementation of hook_civicrm_pre

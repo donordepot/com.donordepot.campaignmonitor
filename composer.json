@@ -1,0 +1,6 @@
+{
+    "name": "donordepot/civicrm-campaignmonitor",
+    "require": {
+        "campaignmonitor/createsend-php": "2.5.*"
+    }
+}
