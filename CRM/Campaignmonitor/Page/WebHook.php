@@ -25,68 +25,72 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
     // And deserialise the data
     $data = $serialiser->deserialise($raw_post);
     
-    $group_id = array_search($data->ListID, $group_map);
+    if (!empty($data->ID)) {
     
-    // Make sure this List is Mapped and is supposed to by synced.
-    if ($group_id !== FALSE && !empty($groups[$group_id])) {
-    
-      $contact_ids = array(
-        'add' => array(),
-        'remove' => array(),
-      );
-    
-      // And now just do something with the data
-      foreach ($data->Events as $event) {
-          
-          // If the Event is a New Subscriber
-          if ($event->type == CS_REST_LIST_WEBHOOK_SUBSCRIBE) {
+      $group_id = array_search($data->ListID, $group_map);
+      
+      // Make sure this List is Mapped and is supposed to by synced.
+      if ($group_id !== FALSE && !empty($groups[$group_id])) {
+      
+        $contact_ids = array(
+          'add' => array(),
+          'remove' => array(),
+        );
+      
+        // And now just do something with the data
+        foreach ($data->Events as $event) {
             
-            // Find the Email.
-            $email = new CRM_Core_BAO_Email();
-            $email->get('email', $event->EmailAddress);
-            
-            // If the Email was found.
-            if (!empty($email->contact_id)) {
-              $contact_ids['add'][] = $email->contact_id;
+            // If the Event is a New Subscriber
+            if ($event->type == CS_REST_LIST_WEBHOOK_SUBSCRIBE) {
+              
+              // Find the Email.
+              $email = new CRM_Core_BAO_Email();
+              $email->get('email', $event->EmailAddress);
+              
+              // If the Email was found.
+              if (!empty($email->contact_id)) {
+                $contact_ids['add'][] = $email->contact_id;
+              }
+              
+            }
+            // If the Event is a an Unsubscriber
+            elseif ($event->type == CS_REST_LIST_WEBHOOK_DEACTIVATE) {
+              
+              // Find the Email.
+              $email = new CRM_Core_BAO_Email();
+              $email->get('email', $event->EmailAddress);
+              
+              // If the Email was found.
+              if (!empty($email->contact_id)) {
+                $contact_ids['remove'][] = $email->contact_id;
+              }
+              
+            }
+            // If the Event is a an Unsubscriber
+            elseif ($event->type == CS_REST_LIST_WEBHOOK_UPDATE) {
+              
+              // Find the Email.
+              $email = new CRM_Core_BAO_Email();
+              $email->get('email', $event->OldEmailAddress);
+              $email->email = $event->EmailAddress;
+              $email->save();
+              
+              
             }
             
-          }
-          // If the Event is a an Unsubscriber
-          elseif ($event->type == CS_REST_LIST_WEBHOOK_DEACTIVATE) {
-            
-            // Find the Email.
-            $email = new CRM_Core_BAO_Email();
-            $email->get('email', $event->EmailAddress);
-            
-            // If the Email was found.
-            if (!empty($email->contact_id)) {
-              $contact_ids['remove'][] = $email->contact_id;
-            }
-            
-          }
-          // If the Event is a an Unsubscriber
-          elseif ($event->type == CS_REST_LIST_WEBHOOK_UPDATE) {
-            
-            // Find the Email.
-            $email = new CRM_Core_BAO_Email();
-            $email->get('email', $event->OldEmailAddress);
-            $email->email = $event->EmailAddress;
-            $email->save();
-            
-            
-          }
-          
+        }
+        
+        // Setup the GroupContact Object
+        $group_contact = new CRM_Contact_BAO_GroupContact();
+        
+        // Add the Contacts to the Group
+        $group_contact->addContactsToGroup($contact_ids['add'], $group_id, 'Email');
+        
+        // Remove the Contacts from the Group
+        $group_contact->removeContactsFromGroup($contact_ids['remove'], $group_id, 'Email');
+        
       }
-      
-      // Setup the GroupContact Object
-      $group_contact = new CRM_Contact_BAO_GroupContact();
-      
-      // Add the Contacts to the Group
-      $group_contact->addContactsToGroup($contact_ids['add'], $group_id, 'Email');
-      
-      // Remove the Contacts from the Group
-      $group_contact->removeContactsFromGroup($contact_ids['remove'], $group_id, 'Email');
-      
+    
     }
     
     // Return the JSON output
