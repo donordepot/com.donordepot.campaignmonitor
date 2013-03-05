@@ -10,6 +10,9 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
     // Initialize the data variable
     $data = array();
 
+    // Get the API Key
+    $api_key = campaignmonitor_variable_get('api_key');
+
     // Get the Groups
     $groups = campaignmonitor_variable_get('groups', array());
 
@@ -26,6 +29,10 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
     $data = $serialiser->deserialise($raw_post);
 
     if (!empty($data->ListID)) {
+
+      // Connect to Campaign Monitor.
+      // This also initalizes the PHP Contants
+      $cs_lists = new CS_REST_Lists($data->ListID, $api_key);
 
       $group_id = array_search($data->ListID, $group_map);
 
@@ -84,10 +91,14 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
         $group_contact = new CRM_Contact_BAO_GroupContact();
 
         // Add the Contacts to the Group
-        $group_contact->addContactsToGroup($contact_ids['add'], $group_id, 'Email');
+        if (!empty($contact_ids['add'])) {
+          $group_contact->addContactsToGroup($contact_ids['add'], $group_id, 'Email');
+        }
 
         // Remove the Contacts from the Group
-        $group_contact->removeContactsFromGroup($contact_ids['remove'], $group_id, 'Email');
+        if (!empty($contact_ids['remove'])) {
+          $group_contact->removeContactsFromGroup($contact_ids['remove'], $group_id, 'Email');
+        }
 
       }
 
