@@ -215,10 +215,12 @@ function campaignmonitor_update_contact($op, $contact_id, $params) {
     $primary_email = '';
     
     // Find the Primary Eamil from the Paramaters.
-    foreach ($params['email'] as $email_params) {
-      if (!empty($email_params['is_primary'])) {
-        $primary_email = $email_params['email'];
-      }
+    if (!empty($params['email']) && is_array($params['email'])) {
+       foreach ($params['email'] as $email_params) {
+        if (!empty($email_params['is_primary'])) {
+          $primary_email = $email_params['email'];
+        }
+      } 
     }
     
     // See if the Current Primary Email is different from the submitted value.
