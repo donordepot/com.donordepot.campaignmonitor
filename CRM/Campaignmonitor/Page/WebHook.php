@@ -78,7 +78,7 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
               // Find the Email.
               $email = new CRM_Core_BAO_Email();
               $email->get('email', $event->OldEmailAddress);
-              if($email->email != $event->EmailAddress){
+              if ($email->email != $event->EmailAddress) {
               	$email->email = $event->EmailAddress;
               	$email->save();
               }
@@ -92,8 +92,8 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
         $group_contact = new CRM_Contact_BAO_GroupContact();
 
 		$filtered_contact_ids = array(
-		          'add' => array(),
-		          'remove' => array(),
+			'add' => array(),
+		    'remove' => array(),
         );
 
         // Add the Contacts to the Group
@@ -129,7 +129,7 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
         }
 
         // Add the Contacts to the Group
-		 if (!empty($filtered_contact_ids['add'])) {
+		if (!empty($filtered_contact_ids['add'])) {
 		   $group_contact->addContactsToGroup($filtered_contact_ids['add'], $group_id, 'API');
 		}
 
