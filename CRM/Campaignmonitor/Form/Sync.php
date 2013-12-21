@@ -124,6 +124,7 @@ class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
       'title' => ts('Campaign Monitor Sync'),
       'queue' => $queue,
       'errorMode'=> CRM_Queue_Runner::ERROR_ABORT,
+      'onEnd' => array('CRM_Campaignmonitor_Form_Sync', 'onEnd'),
       'onEndUrl' => CRM_Utils_System::url(self::END_URL, self::END_PARAMS),
     ));
 
@@ -214,6 +215,20 @@ class CRM_Campaignmonitor_Form_Sync extends CRM_Core_Form {
     }
 
     return CRM_Queue_Task::TASK_SUCCESS;
+  }
+  
+  /**
+   * Handle the final step of the queue
+   */
+  public function onEnd(CRM_Queue_TaskContext $ctx) {
+  
+    // Get the Subscription History since the last time we ran this.
+    $history = new CRM_Contact_BAO_SubscriptionHistory();
+    $history->orderBy('id DESC');
+    $history->find(TRUE);
+    
+    campaignmonitor_variable_set('subscription_history', $history->id);
+    
   }
 
 }
