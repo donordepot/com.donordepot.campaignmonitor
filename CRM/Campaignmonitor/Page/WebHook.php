@@ -46,7 +46,6 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
 
         // And now just do something with the data
         foreach ($data->Events as $event) {
-
             // If the Event is a New Subscriber
             if ($event->Type == CS_REST_LIST_WEBHOOK_SUBSCRIBE) {
 
@@ -73,14 +72,16 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
               }
 
             }
-            // If the Event is a an Unsubscriber
+            // If the Event is a an Update
             elseif ($event->Type == CS_REST_LIST_WEBHOOK_UPDATE) {
 
               // Find the Email.
               $email = new CRM_Core_BAO_Email();
               $email->get('email', $event->OldEmailAddress);
-              $email->email = $event->EmailAddress;
-              $email->save();
+              if ($email->email != $event->EmailAddress) {
+              	$email->email = $event->EmailAddress;
+              	$email->save();
+              }
 
 
             }
@@ -90,14 +91,51 @@ class CRM_Campaignmonitor_Page_WebHook extends CRM_Core_Page {
         // Setup the GroupContact Object
         $group_contact = new CRM_Contact_BAO_GroupContact();
 
+		$filtered_contact_ids = array(
+			'add' => array(),
+		    'remove' => array(),
+        );
+
         // Add the Contacts to the Group
         if (!empty($contact_ids['add'])) {
-          $group_contact->addContactsToGroup($contact_ids['add'], $group_id, 'Email');
+          foreach($contact_ids['add'] as $contact_id){
+
+            $group_contact->group_id = $group_id;
+		    $group_contact->contact_id = $contact_id;
+		    $group_contact->orderBy('id ASC');
+		    $group_contact->limit(0, 1);
+		    $group_contact->find(true);
+
+            if(empty($group_contact->status) || ($group_contact->status != 'Added')){
+          	   $filtered_contact_ids['add'][] = $contact_id;
+          	 }
+          }
         }
 
         // Remove the Contacts from the Group
         if (!empty($contact_ids['remove'])) {
-          $group_contact->removeContactsFromGroup($contact_ids['remove'], $group_id, 'Email');
+          foreach($contact_ids['remove'] as $contact_id){
+
+            $group_contact->group_id = $group_id;
+		    $group_contact->contact_id = $contact_id;
+		    $group_contact->orderBy('id ASC');
+		    $group_contact->limit(0, 1);
+		    $group_contact->find(true);
+
+            if($group_contact->status != 'Removed'){
+             $filtered_contact_ids['remove'][] = $contact_id;
+            }
+          }
+        }
+
+        // Add the Contacts to the Group
+		if (!empty($filtered_contact_ids['add'])) {
+		   $group_contact->addContactsToGroup($filtered_contact_ids['add'], $group_id, 'API');
+		}
+
+		// Remove the Contacts from the Group
+		if (!empty($filtered_contact_ids['remove'])) {
+		   $group_contact->removeContactsFromGroup($contact_ids['remove'], $group_id, 'API');
         }
 
       }
