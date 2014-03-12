@@ -1,7 +1,7 @@
 <?php
 
-require_once 'campaignmonitor.civix.php';
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/campaignmonitor.civix.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 /**
  * Implementation of hook_civicrm_pre
